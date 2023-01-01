@@ -1,0 +1,31 @@
+﻿body {
+    padding: 0;
+    margin: 0;
+}
+
+* {
+    background-color: black
+}
+
+p {
+    color: white;
+}
+
+h3 {
+    color: white;
+}
+
+.media-scroller {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+}
+
+.media-element > img {
+    width: 80%;
+}
+
+.video-image {
+    height: 30%;
+}

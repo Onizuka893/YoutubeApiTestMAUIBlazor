@@ -1,0 +1,107 @@
+﻿@page "/"
+@using ClassLibrary.Models;
+@using ClassLibrary.Services;
+@using Google.Apis.YouTube.v3.Data;
+@inject NavigationManager Navigation
+
+
+
+<div class="container-fluid">
+    <h3>Channels</h3>
+    <div class="row flex-row flex-nowrap overflow-auto mb-3">
+        @foreach (var channel in Channels)
+        {
+            <div class="card col-5" style="border:none">
+                <img class="card-img-top" src="@channel.ChannelImage" @onclick="@(() => GetVideos(channel.ChannelId))" alt="Card image cap" style="cursor:pointer;aspect-ratio:1/1;object-fit:cover;border-radius: 100px;border:solid;border-color:white;border-width:3px">
+            </div>
+        }
+    </div>
+    <h3>Featured videos</h3>
+    <div class="row flex-row flex-nowrap overflow-auto mb-1">
+        @foreach (var video in Videos)
+        {
+            <div class="card col-10" style="border:none">
+                <img class="card-img-top" src="@video.VideoTumbnail" @onclick="@(() => GoToVideo(video.VideoId))" alt="Card image cap" style="cursor:pointer;aspect-ratio:16/9;object-fit:cover;border-radius: 10px;">
+                <div class="card-body" style="margin:0;padding:0;">
+                    <p class="card-text" style="margin:0;padding:0;">@video.VideoTitle</p>
+                    <p class="card-text" style="margin:0;padding:0;">@video.ChannelName</p>
+                    <p class="card-text" style="margin:0;padding:0;"><small class="text-muted">@PublishDate(video.VideoPublishedAt)</small></p>
+                </div>
+            </div>
+        }
+    </div>
+    <h3>Featured playlists</h3>
+    <div class="row flex-row flex-nowrap overflow-auto mb-1">
+        @foreach (var playlist in Playlists)
+        {
+            <div class="card col-10" style="border:none">
+                <img class="card-img-top" src="@playlist.Snippet.Thumbnails.High.Url" @onclick="@(() => GoToPlaylistDetails(playlist.Id))" alt="Card image cap" style="cursor:pointer;aspect-ratio:16/9;object-fit:cover;border-radius: 10px;">
+                <div class="card-body" style="margin:0;padding:0;">
+                    <p class="card-text" style="margin:0;padding:0;">@playlist.Snippet.Title</p>
+                    <p class="card-text" style="margin:0;padding:0;">Items: @playlist.ContentDetails.ItemCount</p>
+                </div>
+            </div>
+        }
+    </div>
+    <h3>Blog posts</h3>
+    <div class="row flex-row flex-nowrap overflow-auto mb-2">
+        @foreach (var video in Videos)
+        {
+            <div class="card m-1" style="width: 18rem;">
+                <div class="card-body">
+                    <h5 class="card-title">Blog Title</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Blog Date</h6>
+                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    public List<ClassLibrary.Models.Video> Videos = new();
+    public List<ClassLibrary.Models.Channel> Channels = new();
+    public List<Playlist> Playlists = new();
+    YoutubeApiCallerService service = new();
+
+    public void GetVideos(string channelId)
+    {
+        Playlists.Clear();
+        Videos.Clear();
+        Videos = service.GetVideos(channelId);
+        Playlists = service.GetPlayLists(channelId);
+    }
+
+    protected override void OnInitialized()
+    {
+        GetChannels();
+        GetVideos(Channels.FirstOrDefault().ChannelId);
+    }
+
+    public void GetChannels()
+    {
+        string[] ids = { "UC90ZQDaZR9wd9ZmqSLNqYwA", "UCcVnZKN3FmUTcbC9x1GTloA", "UCTPmIP5NLxcDAA6OAvASebA", "UClE3onjwcmS6hOBsVYDGC0w" };
+        ClassLibrary.Models.Channel channel;
+        foreach (var id in ids)
+        {
+            channel = new(service.GetChannelInfo(id));
+            Channels.Add(channel);
+        }
+    }
+
+    public void GoToPlaylistDetails(string playlistId)
+    {
+        Navigation.NavigateTo($"/playlist/{playlistId}");
+    }
+
+    public void GoToVideo(string id)
+    {
+        Navigation.NavigateTo($"https://www.youtube.com/watch?v={id}");
+    }
+
+    public string PublishDate(DateTime date)
+    {
+        var interval = DateTime.Now - date;
+        return $"{interval.Days} days ago";
+    }
+}

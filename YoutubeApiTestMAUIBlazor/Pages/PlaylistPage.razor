@@ -1,0 +1,60 @@
+﻿@page "/playlist"
+@page "/playlist/{playlistId}"
+@using ClassLibrary.Models;
+@using ClassLibrary.Services;
+@inject NavigationManager Navigation
+
+<div class="container-fluid">
+    <button type="button" @onclick="GoBack" class="btn btn-dark">Go Back</button>
+    <h3>Playlis videos</h3>
+    <div class="row flex-column flex-nowrap overflow-auto mb-1 justify-content-center">
+        @foreach (var video in Videos)
+        {
+            <div class="card col-10" style="border:none">
+                <img class="card-img-top" src="@video.VideoTumbnail" @onclick="@(() => GoToVideo(video.VideoId))" alt="Card image cap" style="cursor:pointer;aspect-ratio:16/9;object-fit:cover;border-radius: 10px;">
+                <div class="card-body" style="margin:0;padding:0;">
+                    <p class="card-text" style="margin:0;padding:0;">@video.VideoTitle</p>
+                    <p class="card-text" style="margin:0;padding:0;">@video.ChannelName</p>
+                    <p class="card-text" style="margin:0;padding:0;"><small class="text-muted">@PublishDate(video.VideoPublishedAt)</small></p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public string playlistId { get; set; }
+
+    public List<Video> Videos { get; set; }
+    YoutubeApiCallerService service = new();
+
+    protected override void OnInitialized()
+    {
+        GetVideosFromPlaylist();
+    }
+
+    public void GetVideosFromPlaylist()
+    {
+        Videos = new();
+        Videos = service.GetPlaylistVideos(playlistId);
+    }
+
+    public void GoToVideo(string id)
+    {
+        Navigation.NavigateTo($"https://www.youtube.com/watch?v={id}");
+    }
+
+    public string PublishDate(DateTime date)
+    {
+        var interval = DateTime.Now - date;
+        return $"{interval.Days} days ago";
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+}
